@@ -7,7 +7,8 @@ set -e
 EMMC_IMG="/tmp/emmc-img.bin"
 EMMC_DEV="/dev/mmcblk0"
 EMMC_BOOT="/dev/mmcblk0boot0"
-EMMC_IMG_URL="https://github.com/woziwrt/bpi-r4-rescue/releases/download/rescue-latest/openwrt-mediatek-filogic-bananapi_bpi-r4-emmc-img.bin"
+GH_USER="woziwrt"
+GH_REPO="bpi-r4-rescue"
 
 # 1. Check boot media
 echo ">>> Checking boot media..."
@@ -31,7 +32,21 @@ if [ ! -b "$EMMC_DEV" ]; then
 fi
 echo "    OK — $EMMC_DEV found"
 
-# 3. Network check + info
+# 3. Fork selection
+echo ""
+echo ">>> Release source"
+printf "Are you using your own fork? [y/n]: "
+read USE_FORK
+if [ "$USE_FORK" = "y" ]; then
+    echo "    INFO: Fork repository name must remain 'bpi-r4-rescue' (do not rename it)"
+    echo "    INFO: Example username: johndoe"
+    printf "Enter your GitHub username: "
+    read GH_USER
+fi
+EMMC_IMG_URL="https://github.com/${GH_USER}/${GH_REPO}/releases/download/rescue-latest/openwrt-mediatek-filogic-bananapi_bpi-r4-emmc-img.bin"
+echo "    Using release URL: $EMMC_IMG_URL"
+
+# 4. Network check + info
 echo ""
 echo ">>> Network check..."
 echo "    INFO: Internet connection required to download emmc-img.bin (~103MB)"
@@ -41,7 +56,6 @@ printf "Is ethernet connected? [yes/no]: "
 read NET_CONFIRM
 if [ "$NET_CONFIRM" != "yes" ]; then
     echo "    INFO: Connect ethernet and run the script again"
-    echo "    INFO: Alternatively, place emmc-img.bin on a USB flash drive"
     exit 0
 fi
 if ! ping -c 1 -W 3 github.com > /dev/null 2>&1; then
@@ -50,15 +64,12 @@ if ! ping -c 1 -W 3 github.com > /dev/null 2>&1; then
 fi
 echo "    OK — network available"
 
-# 4. Download emmc-img.bin
+# 5. Download emmc-img.bin
 echo ">>> Downloading emmc-img.bin from GitHub (~103MB)..."
 wget -O "$EMMC_IMG" "$EMMC_IMG_URL"
 echo "    OK — downloaded to $EMMC_IMG"
 
-# 5. USB fallback info (if download fails)
-# If wget fails, set -e will exit — user can retry with USB
-
-# 5. Final warning
+# 6. Final warning
 echo ""
 echo "!!! WARNING !!!"
 echo "About to overwrite eMMC ($EMMC_DEV)."
@@ -72,28 +83,28 @@ if [ "$CONFIRM" != "yes" ]; then
     exit 0
 fi
 
-# 6. Write image to eMMC
+# 7. Write image to eMMC
 echo ">>> Writing emmc-img.bin to $EMMC_DEV..."
 dd if="$EMMC_IMG" of="$EMMC_DEV" bs=1M
 sync
 echo "    OK — image written"
 
-# 7. Write BL2 to boot partition
+# 8. Write BL2 to boot partition
 echo ">>> Writing BL2 to boot partition..."
 echo 0 > /sys/block/mmcblk0boot0/force_ro
 dd if="$EMMC_IMG" of="$EMMC_BOOT" bs=512 skip=34 count=512
 sync
 echo "    OK — BL2 written"
 
-# 8. Set eMMC boot partition
+# 9. Set eMMC boot partition
 echo ">>> Setting eMMC boot partition..."
 mmc bootpart enable 1 1 "$EMMC_DEV"
 echo "    OK"
 
-# 9. Cleanup
+# 10. Cleanup
 rm -f "$EMMC_IMG"
 
-# 10. Done
+# 11. Done
 echo ""
 echo "=== Installation complete ==="
 echo ""

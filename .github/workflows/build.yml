@@ -102,6 +102,7 @@ jobs:
           body: |
             Repository commit: ${{ github.event.inputs.repo_commit || github.sha }}
           files: |
+            rescue/bpi-r4-rescue-sdcard.img.gz
             openwrt/bin/targets/mediatek/filogic/openwrt-mediatek-filogic-bananapi_bpi-r4-sdcard.img.gz
             openwrt/bin/targets/mediatek/filogic/openwrt-mediatek-filogic-bananapi_bpi-r4-emmc-img.bin
             openwrt/bin/targets/mediatek/filogic/sha256sums
