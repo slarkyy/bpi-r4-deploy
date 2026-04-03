@@ -54,7 +54,7 @@ chmod -R 755 feeds/luci/applications/luci-app-modemdata/root
 chmod -R 755 feeds/luci/applications/luci-app-sms-tool-js/root
 chmod -R 755 feeds/packages/utils/modemdata/files/usr/share
 
-\cp -r ../my_files/my_final_defconfig .config
+\cp -r ../config/my_final_defconfig .config
 #\cp -r ../configs/config.hnat.la .config
 make defconfig
 
