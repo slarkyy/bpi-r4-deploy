@@ -42,6 +42,8 @@ That's it — OpenWrt is running from your SD card.
 
 ### Option 2 — NVMe install (recommended for permanent use)
 
+> ⚠️ **If you want both NVMe and eMMC:** Always run `install-emmc.sh` (Option 3) **before** `install-nvme.sh`. After NVMe installation, the device always boots from NVMe automatically — eMMC installation will no longer be possible without manual intervention.
+
 This installs OpenWrt to an NVMe SSD. After installation, the SD card is no longer needed.
 
 #### What you need
