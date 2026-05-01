@@ -40,9 +40,70 @@ echo "CONFIG_BLK_DEV_NVME=y" >> target/linux/mediatek/filogic/config-6.12
 \cp -r ../my_files/luci-app-lite-watchdog/ feeds/luci/applications
 \cp -r ../my_files/luci-app-sms-tool-js-main/luci-app-sms-tool-js/ feeds/luci/applications
 
+mkdir -p files/etc/config
 mkdir -p files/etc/uci-defaults
+
 \cp -r ../my_files/99-set-hostname files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/99-set-hostname
+
+echo "Adding custom baked OpenWrt configs from GitHub Actions secrets..."
+
+if [ -n "${OPENWRT_NETWORK:-}" ]; then
+  printf '%s\n' "$OPENWRT_NETWORK" > files/etc/config/network
+fi
+
+if [ -n "${OPENWRT_WIRELESS:-}" ]; then
+  printf '%s\n' "$OPENWRT_WIRELESS" > files/etc/config/wireless
+  chmod 600 files/etc/config/wireless
+fi
+
+if [ -n "${OPENWRT_SYSTEM:-}" ]; then
+  printf '%s\n' "$OPENWRT_SYSTEM" > files/etc/config/system
+fi
+
+if [ -n "${OPENWRT_LUCI:-}" ]; then
+  printf '%s\n' "$OPENWRT_LUCI" > files/etc/config/luci
+fi
+
+if [ -n "${OPENWRT_ROOT_PASSWORD_HASH:-}" ]; then
+  printf '%s\n' "$OPENWRT_ROOT_PASSWORD_HASH" > files/etc/root-password.hash
+  chmod 600 files/etc/root-password.hash
+fi
+
+cat > files/etc/uci-defaults/98-set-root-password <<'EOF'
+#!/bin/sh
+
+if [ -f /etc/root-password.hash ]; then
+  hash="$(cat /etc/root-password.hash)"
+  if [ -n "$hash" ]; then
+    printf 'root:%s\n' "$hash" | chpasswd -e
+  fi
+  rm -f /etc/root-password.hash
+fi
+
+exit 0
+EOF
+
+cat > files/etc/uci-defaults/99-apply-baked-configs <<'EOF'
+#!/bin/sh
+
+[ -f /rom/etc/config/network ] && cp /rom/etc/config/network /etc/config/network
+[ -f /rom/etc/config/wireless ] && cp /rom/etc/config/wireless /etc/config/wireless
+[ -f /rom/etc/config/system ] && cp /rom/etc/config/system /etc/config/system
+[ -f /rom/etc/config/luci ] && cp /rom/etc/config/luci /etc/config/luci
+
+chmod 600 /etc/config/wireless 2>/dev/null || true
+
+uci -q commit network || true
+uci -q commit wireless || true
+uci -q commit system || true
+uci -q commit luci || true
+
+exit 0
+EOF
+
+chmod +x files/etc/uci-defaults/98-set-root-password
+chmod +x files/etc/uci-defaults/99-apply-baked-configs
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
