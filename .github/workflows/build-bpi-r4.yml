@@ -103,9 +103,15 @@ jobs:
             rsync swig unzip zlib1g-dev file wget libelf-dev ccache git
 
       - name: Run builder script
-        run: |
-          chmod +x ${{ env.BUILDER }}
-          ${{ env.BUILDER }}
+  run: |
+    chmod +x ${{ env.BUILDER }}
+    ${{ env.BUILDER }}
+  env:
+    OPENWRT_NETWORK: ${{ secrets.OPENWRT_NETWORK }}
+    OPENWRT_WIRELESS: ${{ secrets.OPENWRT_WIRELESS }}
+    OPENWRT_SYSTEM: ${{ secrets.OPENWRT_SYSTEM }}
+    OPENWRT_LUCI: ${{ secrets.OPENWRT_LUCI }}
+    OPENWRT_ROOT_PASSWORD_HASH: ${{ secrets.OPENWRT_ROOT_PASSWORD_HASH }}
 
       - name: Prepare NVMe artifacts
         if: github.event.inputs.build_type == 'nvme'
