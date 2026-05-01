@@ -125,7 +125,14 @@ jobs:
         run: |
           chmod +x ${{ env.BUILDER }}
           ${{ env.BUILDER }}
-        env:
+        
+  env:
+    OPENWRT_NETWORK: ${{ secrets.OPENWRT_NETWORK }}
+    OPENWRT_WIRELESS: ${{ secrets.OPENWRT_WIRELESS }}
+    OPENWRT_SYSTEM: ${{ secrets.OPENWRT_SYSTEM }}
+    OPENWRT_LUCI: ${{ secrets.OPENWRT_LUCI }}
+    OPENWRT_ROOT_PASSWORD_HASH: ${{ secrets.OPENWRT_ROOT_PASSWORD_HASH }}
+env:
           OPENWRT_COMMIT: ${{ env.OPENWRT_COMMIT }}
           MTK_COMMIT: ${{ env.MTK_COMMIT }}
 
